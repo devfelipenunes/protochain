@@ -30,12 +30,14 @@ export default class Block {
 
   /**
    * Checks if the current state is valid.
+   *@param {string} previousHash
+   * @param {number} previousIndex
    *
    * @return {boolean} True if the state is valid, false otherwise.
    */
   isValid(previousHash: string, previousIndex: number): boolean {
     if (previousIndex !== this.index - 1) return false;
-    if (!this.hash) return false;
+    if (this.hash !== this.geHash()) return false;
     if (!this.data) return false;
     if (this.timestamp < 1) return false;
     if (this.previousHash !== previousHash) return false;
