@@ -11,34 +11,34 @@ describe("Block", () => {
     const block = new Block(1, genesis.hash, "block 2");
     const valid = block.isValid(genesis.hash, genesis.index);
 
-    expect(valid).toBe(true);
+    expect(valid.success).toBe(true);
   });
 
   describe("Should NOT be valid (previous hash)", () => {
     const block = new Block(1, "", "block 1");
     const valid = block.isValid(genesis.hash, genesis.index);
 
-    expect(valid).toBeFalsy();
+    expect(valid.success).toBeFalsy();
   });
 
   describe("Should NOT be valid (timestamp)", () => {
     const block = new Block(-1, "abc", "block bloc");
     const valid = block.isValid(genesis.hash, genesis.index);
 
-    expect(valid).toBeFalsy();
+    expect(valid.success).toBeFalsy();
   });
 
   describe("Should NOT be valid (hash)", () => {
     const block = new Block(1, genesis.hash, "");
     const valid = block.isValid(genesis.hash, genesis.index);
 
-    expect(valid).toBeFalsy();
+    expect(valid.success).toBeFalsy();
   });
 
   test("Should NOT be valid (index)", () => {
     const block = new Block(-1, genesis.hash, "block 2");
     const valid = block.isValid(genesis.hash, genesis.index);
 
-    expect(valid).toBeFalsy();
+    expect(valid.success).toBeFalsy();
   });
 });
