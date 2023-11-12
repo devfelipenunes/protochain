@@ -14,6 +14,12 @@ app.get("/status", (req, res, next) => {
   });
 });
 
+app.get("/blocks/:indexOrHash", (req, res, next) => {
+  if (/^[0-9]/.test(req.params.indexOrHash))
+    return res.json(blockchain.blocks[parseInt(req.params.indexOrHash)]);
+  else return res.json(blockchain.getBlock(req.params.indexOrHash));
+});
+
 app.listen(PORT, () => {
   console.log(`Blockchain server is running at ${PORT}`);
 });

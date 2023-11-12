@@ -14,6 +14,10 @@ export default class Blockchain {
     return this.blocks[this.blocks.length - 1];
   }
 
+  getBlock(hash: string): Block | undefined {
+    return this.blocks.find((b) => hash === hash);
+  }
+
   addBlock(block: Block): Validation {
     const lastBlock = this.getLastBlock();
 
