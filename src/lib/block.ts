@@ -15,12 +15,12 @@ export default class Block {
    * @param {string} previousHash - The previous hash of the instance.
    * @param {string} data - The data of the instance.
    */
-  constructor(index: number, previousHash: string, data: string) {
-    this.index = index;
-    this.timestamp = Date.now();
-    this.previousHash = previousHash;
-    this.data = data;
-    this.hash = this.geHash();
+  constructor(block?: Block) {
+    this.index = block?.index || 0;
+    this.timestamp = block?.timestamp || Date.now();
+    this.previousHash = block?.previousHash || "";
+    this.data = block?.data || "";
+    this.hash = block?.hash || this.geHash();
   }
 
   geHash(): string {

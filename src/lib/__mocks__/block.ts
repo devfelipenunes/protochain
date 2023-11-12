@@ -1,5 +1,5 @@
 import Block from "./block";
-import Validation from "./validation";
+import Validation from "../validation";
 
 export default class Blockchain {
   blocks: Block[];
@@ -8,8 +8,10 @@ export default class Blockchain {
   constructor() {
     this.blocks = [
       new Block({
-        index: this.nextIndex,
+        index: 0,
+        hash: "abc",
         previousHash: "",
+        timestamp: Date.now(),
         data: "Genesis Block",
       } as Block),
     ];
@@ -25,11 +27,7 @@ export default class Blockchain {
   }
 
   addBlock(block: Block): Validation {
-    const lastBlock = this.getLastBlock();
-
-    const validation = block.isValid(lastBlock.hash, lastBlock.index);
-    if (!validation.success)
-      return new Validation(false, `Invalid block: ${validation.message}`);
+    if (block.index < 0) return new Validation(false, "invalid mock block.");
 
     this.blocks.push(block);
     this.nextIndex++;
