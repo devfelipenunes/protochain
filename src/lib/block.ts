@@ -39,12 +39,17 @@ export default class Block {
   isValid(previousHash: string, previousIndex: number): Validation {
     if (previousIndex !== this.index - 1)
       return new Validation(false, "Invalid index.");
+
     if (this.hash !== this.geHash())
       return new Validation(false, "Invalid hash.");
+
     if (!this.data) return new Validation(false, "Invalid data.");
+
     if (this.timestamp < 1) return new Validation(false, "Invalid timestamp.");
+
     if (this.previousHash !== previousHash)
       return new Validation(false, "Invalid previous hash.");
+
     return new Validation();
   }
 }

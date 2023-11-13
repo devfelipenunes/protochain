@@ -1,54 +1,35 @@
-import Block from "./block";
+import { SHA256 } from "crypto-js";
 import Validation from "../validation";
 
-export default class Blockchain {
-  blocks: Block[];
-  nextIndex: number = 0;
+export default class Block {
+  index: number;
+  timestamp: number;
+  hash: string;
+  previousHash: string;
+  data: string;
 
-  constructor() {
-    this.blocks = [
-      new Block({
-        index: 0,
-        hash: "abc",
-        previousHash: "",
-        timestamp: Date.now(),
-        data: "Genesis Block",
-      } as Block),
-    ];
-    this.nextIndex++;
+  constructor(block?: Block) {
+    this.index = block?.index || 0;
+    this.timestamp = block?.timestamp || Date.now();
+    this.previousHash = block?.previousHash || "";
+    this.data = block?.data || "";
+    this.hash = block?.hash || this.geHash();
   }
 
-  getLastBlock(): Block {
-    return this.blocks[this.blocks.length - 1];
+  geHash(): string {
+    return this.data || "abc";
   }
 
-  getBlock(hash: string): Block | undefined {
-    return this.blocks.find((b) => hash === hash);
-  }
-
-  addBlock(block: Block): Validation {
-    if (block.index < 0) return new Validation(false, "invalid mock block.");
-
-    this.blocks.push(block);
-    this.nextIndex++;
-
-    return new Validation();
-  }
-
-  isValid(): Validation {
-    for (let i = this.blocks.length - 1; i > 0; i--) {
-      const currentBlock = this.blocks[i];
-      const previousBlock = this.blocks[i - 1];
-      const validation = currentBlock.isValid(
-        previousBlock.hash,
-        previousBlock.index
-      );
-      if (!validation.success)
-        return new Validation(
-          false,
-          `Invalid block #${currentBlock.index}:  ${validation.message} `
-        );
-    }
+  /**
+   * Checks if the current state is valid.
+   *@param {string} previousHash
+   * @param {number} previousIndex
+   *
+   * @return {boolean} True if the state is valid, false otherwise.
+   */
+  isValid(previousHash: string, previousIndex: number): Validation {
+    if (!previousHash || previousIndex < 0 || this.index < 0)
+      return new Validation(false, "Invalid mock block.");
     return new Validation();
   }
 }
