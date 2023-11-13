@@ -19,6 +19,10 @@ app.get("/status", (req, res, next) => {
   });
 });
 
+app.get("/blocks/next", (req, res, next) => {
+  res.json(blockchain.getNextBlock());
+});
+
 app.get("/blocks/:indexOrHash", (req, res, next) => {
   let block;
 
