@@ -1,38 +1,41 @@
 import { SHA256 } from "crypto-js";
 import Validation from "./validation";
+import BlockInfo from "./blockInfo";
+import Transaction from "./transaction";
+import TransactionType from "./transactionType";
 
 export default class Block {
   index: number;
   timestamp: number;
   hash: string;
   previousHash: string;
-  data: string;
+  transactions: Transaction[];
   nonce: number;
   miner: string;
 
-  /**
-   * Initializes a new instance of the `constructor` class.
-   *
-   * @param {number} index - The index of the instance.
-   * @param {string} previousHash - The previous hash of the instance.
-   * @param {string} data - The data of the instance.
-   */
   constructor(block?: Block) {
     this.index = block?.index || 0;
     this.timestamp = block?.timestamp || Date.now();
     this.previousHash = block?.previousHash || "";
-    this.data = block?.data || "";
+    this.transactions = block?.transactions
+      ? block.transactions.map((tx) => new Transaction(tx))
+      : ([] as Transaction[]);
     this.nonce = block?.nonce || 0;
     this.miner = block?.miner || "";
     this.hash = block?.hash || this.geHash();
   }
 
   geHash(): string {
+    const txs =
+      this.transactions && this.transactions.length
+        ? this.transactions.map((tx) => tx.hash).reduce((a, b) => a + b)
+        : "";
+
     return SHA256(
       this.index +
         this.previousHash +
         this.timestamp +
-        this.data +
+        txs +
         this.nonce +
         this.miner
     ).toString();
@@ -64,7 +67,23 @@ export default class Block {
     if (previousIndex !== this.index - 1)
       return new Validation(false, "Invalid index.");
 
-    if (!this.data) return new Validation(false, "Invalid data.");
+    if (this.transactions && this.transactions.length) {
+      if (
+        this.transactions.filter((tx) => tx.type === TransactionType.FEE)
+          .length > 1
+      )
+        return new Validation(false, "Too many fee transactions.");
+
+      const validations = this.transactions.map((tx) => tx.isValid());
+      const errors = validations
+        .filter((v) => !v.success)
+        .map((v) => v.message);
+      if (errors.length > 0)
+        return new Validation(
+          false,
+          "Invalid block due to invalid tx:" + errors.reduce((a, b) => a + b)
+        );
+    }
 
     if (this.timestamp < 1) return new Validation(false, "Invalid timestamp.");
 
@@ -78,5 +97,14 @@ export default class Block {
       return new Validation(false, "Invalid hash.");
 
     return new Validation();
+  }
+
+  static fromBlockInfo(blockInfo: BlockInfo): Block {
+    const block = new Block();
+    block.index = blockInfo.index;
+    block.previousHash = blockInfo.previousHash;
+    block.transactions = blockInfo.transactions;
+
+    return block;
   }
 }
