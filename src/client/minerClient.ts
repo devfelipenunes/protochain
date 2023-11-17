@@ -17,7 +17,14 @@ let totalMined = 0;
 
 async function mine() {
   const { data } = await axios.get(`${BLOCKCHAIN_SERVER}/blocks/next`);
-  console.log(data);
+
+  if (!data) {
+    console.log("No tx found");
+    return setTimeout(() => {
+      mine();
+    }, 5000);
+  }
+
   const blockInfo = data as BlockInfo;
   const newBlock = Block.fromBlockInfo(blockInfo);
   console.log("Start mining..." + blockInfo.index);
