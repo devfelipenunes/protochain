@@ -31,6 +31,7 @@ function menu() {
     console.log("2 - Recover wallet");
     console.log("3 - Balance");
     console.log("4 - Send Tx");
+    console.log("5 - Search tx");
 
     rl.question("Choose your option: ", (answer) => {
       switch (answer) {
@@ -45,6 +46,9 @@ function menu() {
           break;
         case "4":
           sendTx();
+          break;
+        case "5":
+          searchTx();
           break;
         default: {
           console.log("Invalid option");
@@ -137,6 +141,17 @@ function sendTx() {
   });
 
   preMenu();
+}
+
+function searchTx() {
+  console.clear();
+  rl.question(`Hash: `, async (hash) => {
+    const response = await axios.get(
+      `${BLOCKCHAIN_SERVER}/transactions/${hash}`
+    );
+    console.log(response.data);
+    return preMenu();
+  });
 }
 
 menu();

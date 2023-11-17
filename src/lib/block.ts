@@ -22,10 +22,10 @@ export default class Block {
       : ([] as Transaction[]);
     this.nonce = block?.nonce || 0;
     this.miner = block?.miner || "";
-    this.hash = block?.hash || this.geHash();
+    this.hash = block?.hash || this.getHash();
   }
 
-  geHash(): string {
+  getHash(): string {
     const txs =
       this.transactions && this.transactions.length
         ? this.transactions.map((tx) => tx.hash).reduce((a, b) => a + b)
@@ -47,7 +47,7 @@ export default class Block {
 
     do {
       this.nonce++;
-      this.hash = this.geHash();
+      this.hash = this.getHash();
     } while (!this.hash.startsWith(prefix));
   }
 
@@ -68,11 +68,17 @@ export default class Block {
       return new Validation(false, "Invalid index.");
 
     if (this.transactions && this.transactions.length) {
-      if (
-        this.transactions.filter((tx) => tx.type === TransactionType.FEE)
-          .length > 1
-      )
+      const feeTxs = this.transactions.filter(
+        (tx) => tx.type === TransactionType.FEE
+      );
+
+      if (!feeTxs.length) return new Validation(false, "No fee tx.");
+
+      if (feeTxs.length > 1)
         return new Validation(false, "Too many fee transactions.");
+
+      if (feeTxs[0].to !== this.miner)
+        return new Validation(false, "Invalid fee tx: different from miner.");
 
       const validations = this.transactions.map((tx) => tx.isValid());
       const errors = validations
@@ -93,7 +99,7 @@ export default class Block {
     if (!this.miner || !this.nonce) return new Validation(false, "No miner.");
 
     const prefix = new Array(difficulty + 1).join("0");
-    if (this.hash !== this.geHash() || !this.hash.startsWith(prefix))
+    if (this.hash !== this.getHash() || !this.hash.startsWith(prefix))
       return new Validation(false, "Invalid hash.");
 
     return new Validation();

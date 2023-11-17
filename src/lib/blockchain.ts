@@ -10,7 +10,7 @@ export default class Blockchain {
   mempool: Transaction[];
   nextIndex: number = 0;
 
-  static readonly TX_PER_BLOCK: number = 2;
+  static readonly TX_PER_BLOCK: number = 5;
   static readonly DIFFICULTY_FACTOR: number = 5;
   static readonly MAX_DIFFICULTY: number = 62;
 
@@ -35,7 +35,21 @@ export default class Blockchain {
     return this.blocks[this.blocks.length - 1];
   }
 
+  getDifficulty(): number {
+    return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR) + 1;
+  }
+
   addTransaction(transaction: Transaction): Validation {
+    if (transaction.txInput) {
+      const from = transaction.txInput.fromAddress;
+      const peddingTx = this.mempool
+        .map((tx) => tx.txInput)
+        .filter((txi) => txi!.fromAddress === from);
+      if (peddingTx && peddingTx.length) {
+        return new Validation(false, "This wallet has pending txs");
+      }
+    }
+
     const validation = transaction.isValid();
 
     if (!validation.success)
@@ -85,10 +99,6 @@ export default class Blockchain {
       blockIndex: -1,
       mempoolIndex: -1,
     } as TransactionSearch;
-  }
-
-  getDifficulty(): number {
-    return Math.ceil(this.blocks.length / Blockchain.DIFFICULTY_FACTOR);
   }
 
   addBlock(block: Block): Validation {

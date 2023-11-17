@@ -18,7 +18,7 @@ export default class TransactionInput {
 
   sign(privateKey: string) {
     this.signature = ECPair.fromPrivateKey(Buffer.from(privateKey, "hex"))
-      .sign(Buffer.from(this.fromAddress, "hex"))
+      .sign(Buffer.from(this.getHash(), "hex"))
       .toString("hex");
   }
 
