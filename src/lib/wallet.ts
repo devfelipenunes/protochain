@@ -3,21 +3,23 @@ import ECPairFactory from "ecpair";
 
 const ECPair = ECPairFactory(ecc);
 
+/**
+ * Wallet class
+ */
 export default class Wallet {
   privateKey: string;
   publicKey: string;
 
-  constructor(wiOrPrivateKey?: string) {
+  constructor(wifOrPrivateKey?: string) {
     let keys;
 
-    if (wiOrPrivateKey) {
-      if (wiOrPrivateKey.length === 64) {
-        keys = ECPair.fromPrivateKey(Buffer.from(wiOrPrivateKey, "hex"));
-      } else {
-        keys = ECPair.fromWIF(wiOrPrivateKey);
-      }
+    if (wifOrPrivateKey) {
+      if (wifOrPrivateKey.length === 64)
+        keys = ECPair.fromPrivateKey(Buffer.from(wifOrPrivateKey, "hex"));
+      else keys = ECPair.fromWIF(wifOrPrivateKey);
     } else keys = ECPair.makeRandom();
 
+    /* c8 ignore next */
     this.privateKey = keys.privateKey?.toString("hex") || "";
     this.publicKey = keys.publicKey.toString("hex");
   }
