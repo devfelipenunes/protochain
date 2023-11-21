@@ -4,6 +4,7 @@ import Validation from "./validation";
 import Transaction from "./transaction";
 import TransactionType from "./transactionType";
 import TransactionSearch from "./transactionSearch";
+import TransactionOutput from "./transactionOutput";
 
 export default class Blockchain {
   blocks: Block[];
@@ -14,21 +15,37 @@ export default class Blockchain {
   static readonly DIFFICULTY_FACTOR: number = 5;
   static readonly MAX_DIFFICULTY: number = 62;
 
-  constructor() {
+  constructor(miner: string) {
+    this.blocks = [];
     this.mempool = [];
-    this.blocks = [
-      new Block({
-        index: this.nextIndex,
-        previousHash: "",
-        transactions: [
-          new Transaction({
-            type: TransactionType.FEE,
-            data: new Date().toString(),
-          } as Transaction),
-        ],
-      } as Block),
-    ];
+
+    const genesis = this.createGenesis(miner);
+    this.blocks.push(genesis);
+
     this.nextIndex++;
+  }
+
+  createGenesis(miner: string) {
+    const amount = 10;
+
+    const tx = new Transaction({
+      type: TransactionType.FEE,
+      txOutputs: [
+        new TransactionOutput({
+          amount,
+          toAddress: miner,
+        } as TransactionOutput),
+      ],
+    } as Transaction);
+
+    tx.hash = tx.getHash();
+    tx.txOutputs[0].tx = tx.hash;
+
+    const block = new Block();
+    block.transactions = [tx];
+    block.mine(this.getDifficulty(), miner);
+
+    return block;
   }
 
   getLastBlock(): Block {
@@ -40,11 +57,15 @@ export default class Blockchain {
   }
 
   addTransaction(transaction: Transaction): Validation {
-    if (transaction.txInput) {
-      const from = transaction.txInput.fromAddress;
+    if (transaction.txInputs && transaction.txInputs.length) {
+      const from = transaction.txInputs[0].fromAddress;
+
       const peddingTx = this.mempool
-        .map((tx) => tx.txInput)
+        .filter((tx) => tx.txInputs && tx.txInputs.length)
+        .map((tx) => tx.txInputs)
+        .flat()
         .filter((txi) => txi!.fromAddress === from);
+
       if (peddingTx && peddingTx.length) {
         return new Validation(false, "This wallet has pending txs");
       }
@@ -102,12 +123,13 @@ export default class Blockchain {
   }
 
   addBlock(block: Block): Validation {
-    const lastBlock = this.getLastBlock();
+    const nextBlock = this.getNextBlock();
+    if (!nextBlock) return new Validation(false, "No next block");
 
     const validation = block.isValid(
-      lastBlock.hash,
-      lastBlock.index,
-      this.getDifficulty()
+      nextBlock.previousHash,
+      nextBlock.index - 1,
+      nextBlock.difficulty
     );
     if (!validation.success)
       return new Validation(false, `Invalid block: ${validation.message}`);

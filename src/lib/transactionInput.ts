@@ -9,8 +9,10 @@ export default class TransactionInput {
   fromAddress: string;
   amount: number;
   signature: string;
+  previousTx: string;
 
   constructor(txInput?: TransactionInput) {
+    this.previousTx = txInput?.previousTx || "";
     this.fromAddress = txInput?.fromAddress || "";
     this.amount = txInput?.amount || 0;
     this.signature = txInput?.signature || "";
@@ -23,11 +25,12 @@ export default class TransactionInput {
   }
 
   getHash(): string {
-    return SHA256(this.fromAddress + this.amount).toString();
+    return SHA256(this.previousTx + this.fromAddress + this.amount).toString();
   }
 
   isValid(): Validation {
-    if (!this.signature) return new Validation(false, "Invalid signature");
+    if (!this.previousTx || !this.signature)
+      return new Validation(false, "Invalid signature");
     if (this.amount < 1)
       return new Validation(false, "Amount must be greater than 0");
 

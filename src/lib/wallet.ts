@@ -11,14 +11,14 @@ export default class Wallet {
     let keys;
 
     if (wiOrPrivateKey) {
-      if (wiOrPrivateKey.length == 64) {
+      if (wiOrPrivateKey.length === 64) {
         keys = ECPair.fromPrivateKey(Buffer.from(wiOrPrivateKey, "hex"));
       } else {
         keys = ECPair.fromWIF(wiOrPrivateKey);
       }
     } else keys = ECPair.makeRandom();
 
-    this.publicKey = keys.publicKey?.toString("hex") || "";
     this.privateKey = keys.privateKey?.toString("hex") || "";
+    this.publicKey = keys.publicKey.toString("hex");
   }
 }

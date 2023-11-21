@@ -6,6 +6,8 @@ import Blockchain from "../lib/blockchain";
 import Block from "../lib/block";
 import morgan from "morgan";
 import Transaction from "../lib/transaction";
+import Wallet from "../lib/wallet";
+import TransactionOutput from "../lib/transactionOutput";
 const PORT: number = parseInt(`${process.env.BLOCKCHAIN_PORT || 3001}`);
 
 const app = express();
@@ -13,7 +15,8 @@ const app = express();
 if (process.argv.includes("--run")) app.use(morgan("tiny"));
 app.use(express.json());
 
-const blockchain = new Blockchain();
+const wallet = new Wallet(process.env.BLOCKCHAIN_WALLET);
+const blockchain = new Blockchain(wallet.publicKey);
 
 app.get("/status", (req, res, next) => {
   res.json({
@@ -68,9 +71,26 @@ app.post("/transactions", (req, res, next) => {
   else res.status(400).json(validation);
 });
 
+app.get("/wallets/:wallet", (req, res, next) => {
+  const wallet = req.params.wallet;
+  return res.json({
+    balance: 10,
+    fee: blockchain.getFeerPerTx(),
+    utxo: [
+      new TransactionOutput({
+        toAddress: wallet,
+        amount: 10,
+        tx: "abc",
+      } as TransactionOutput),
+    ],
+  });
+});
+
 if (process.argv.includes("--run"))
   app.listen(PORT, () => {
-    console.log(`Blockchain server is running at ${PORT}`);
+    console.log(
+      `Blockchain server is running at ${PORT}. wallet: ${wallet.publicKey}`
+    );
   });
 
 export { app };
