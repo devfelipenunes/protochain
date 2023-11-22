@@ -167,12 +167,13 @@ export default class Blockchain {
       const validation = currentBlock.isValid(
         previousBlock.hash,
         previousBlock.index,
-        this.getDifficulty()
+        this.getDifficulty(),
+        this.getFeerPerTx()
       );
       if (!validation.success)
         return new Validation(
           false,
-          `Invalid block #${currentBlock.index}:  ${validation.message} `
+          `Invalid block #${currentBlock.index}: ${validation.message}`
         );
     }
     return new Validation();
