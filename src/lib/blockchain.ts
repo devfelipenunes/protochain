@@ -27,20 +27,14 @@ export default class Blockchain {
   }
 
   createGenesis(miner: string) {
-    const amount = 10;
+    const amount = Blockchain.getReward(this.getDifficulty());
 
-    const tx = new Transaction({
-      type: TransactionType.FEE,
-      txOutputs: [
-        new TransactionOutput({
-          amount,
-          toAddress: miner,
-        } as TransactionOutput),
-      ],
-    } as Transaction);
-
-    tx.hash = tx.getHash();
-    tx.txOutputs[0].tx = tx.hash;
+    const tx = Transaction.fromReward(
+      new TransactionOutput({
+        toAddress: miner,
+        amount,
+      } as TransactionOutput)
+    );
 
     const block = new Block();
     block.transactions = [tx];
@@ -84,7 +78,10 @@ export default class Blockchain {
       }
     }
 
-    const validation = transaction.isValid();
+    const validation = transaction.isValid(
+      this.getDifficulty(),
+      this.getFeerPerTx()
+    );
 
     if (!validation.success)
       return new Validation(false, "Invalid tx: " + validation.message);
@@ -142,7 +139,8 @@ export default class Blockchain {
     const validation = block.isValid(
       nextBlock.previousHash,
       nextBlock.index - 1,
-      nextBlock.difficulty
+      nextBlock.difficulty,
+      nextBlock.feePexTx
     );
     if (!validation.success)
       return new Validation(false, `Invalid block: ${validation.message}`);
@@ -242,5 +240,9 @@ export default class Blockchain {
     if (!utxo || !utxo.length) return 0;
 
     return utxo.reduce((a, b) => a + b.amount, 0);
+  }
+
+  static getReward(difficulty: number): number {
+    return (64 - difficulty) * 10;
   }
 }
